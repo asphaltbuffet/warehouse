@@ -21,23 +21,18 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"os"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
 )
 
-var (
-	appFS  afero.Fs
-)
+var appFS afero.Fs
 
 // default const values for application.
 const (
-	DefaultConfigFilename    = ".warehouse"
-	DefaultLoggingLevel      = "warn"
+	DefaultConfigFilename = ".warehouse"
+	DefaultLoggingLevel   = "warn"
 )
 
 const rootCommandLongDesc = "warehouse is a tracking application for personal items.\n" +
