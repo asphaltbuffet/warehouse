@@ -32,10 +32,10 @@ announce:
 dockers:
   -
     image_templates:
-    - "docker.pkg.github.com/asphaltbuffet/warehouse/{{ .ProjectName }}:latest"
-    - "docker.pkg.github.com/asphaltbuffet/warehouse/{{ .ProjectName }}:{{ .Major }}"
-    - "docker.pkg.github.com/asphaltbuffet/warehouse/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}"
-    - "docker.pkg.github.com/asphaltbuffet/warehouse/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+    - "docker.pkg.github.com/asphaltbuffet/{{ .ProjectName }}:latest"
+    - "docker.pkg.github.com/asphaltbuffet/{{ .ProjectName }}:{{ .Major }}"
+    - "docker.pkg.github.com/asphaltbuffet/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}"
+    - "docker.pkg.github.com/asphaltbuffet/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
     build_flag_templates:
     - "--pull"
     - "--label=org.opencontainers.image.created={{.Date}}"
