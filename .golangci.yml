@@ -1,6 +1,6 @@
 linters-settings:
   goimports:
-    local-prefixes: github.com/golang-templates/seed
+    local-prefixes: github.com/asphaltbuffet/warehouse
   golint:
     min-confidence: 0.8
   gocyclo:
@@ -14,6 +14,22 @@ linters-settings:
     allow-unused: false # report any unused nolint directives
     require-explanation: true # require an explanation for nolint directives
     require-specific: false # don't require nolint directives to be specific about which linter is being skipped
+  godox:
+    # report any comments starting with keywords, this is useful for TODO or FIXME comments that
+    # might be left in the code accidentally and should be resolved before merging
+    keywords: # default keywords are TODO, BUG, and FIXME, these can be overwritten by this setting
+      - NOTE
+      - TODO
+      - OPTIMIZE # marks code that should be optimized before merging
+      - HACK # marks hack-arounds that should be removed before merging
+  gomnd:
+    settings:
+      mnd:
+        # the list of enabled checks, see https://github.com/tommy-muehle/go-mnd/#checks for description.
+        checks: argument,case,condition,operation,return,assign
+        ignored-numbers: 0o644
+        # ignored-files: magic_.*.go
+        # ignored-functions: os.*
 
 linters:
   # please, do not use `enable-all`: it's deprecated and will be removed soon.
@@ -42,6 +58,7 @@ linters:
     - gocritic
     - gocyclo
     - godot
+    - godox
     - gofumpt
     - revive
     - gomnd
@@ -65,3 +82,8 @@ linters:
 issues:
   # enable issues excluded by default 
   exclude-use-default: false
+  exclude-rules:
+    - path: _test.go
+      linters:
+        - funlen
+        - dupl
