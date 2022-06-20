@@ -14,16 +14,28 @@ archives:
 - format_overrides:
     - goos: windows
       format: zip
+  files:
+  - src: .warehouse
+  - src: README*
+    dst: docs
+  - src: LICENSE*
+    dst: docs
+  - src: CHANGELOG*
+    dst: docs
 release:
   github:
+    owner: asphaltbuffet
+    name: warehouse
   prerelease: auto
+announce:
+  skip: "true"
 dockers:
   -
     image_templates:
-    - "docker.pkg.github.com/golang-templates/seed/{{ .ProjectName }}:latest"
-    - "docker.pkg.github.com/golang-templates/seed/{{ .ProjectName }}:{{ .Major }}"
-    - "docker.pkg.github.com/golang-templates/seed/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}"
-    - "docker.pkg.github.com/golang-templates/seed/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+    - "docker.pkg.github.com/asphaltbuffet/{{ .ProjectName }}:latest"
+    - "docker.pkg.github.com/asphaltbuffet/{{ .ProjectName }}:{{ .Major }}"
+    - "docker.pkg.github.com/asphaltbuffet/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}"
+    - "docker.pkg.github.com/asphaltbuffet/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
     build_flag_templates:
     - "--pull"
     - "--label=org.opencontainers.image.created={{.Date}}"
