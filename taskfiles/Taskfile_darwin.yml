@@ -1,7 +1,0 @@
-version: '3'
-
-tasks:
-  clean:
-    cmds:
-      - cmd: rm -rf dist
-      - cmd: rm -f coverage.*
