@@ -1,4 +1,4 @@
-module github.com/asphaltbuffet/warehouse
+module github.com/asphaltbuffet/warehouse/tools
 
 go 1.18
 
