@@ -2,7 +2,6 @@
 
 [![Keep a Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-%23E05735)](CHANGELOG.md)
 [![GitHub Release](https://img.shields.io/github/v/release/asphaltbuffet/warehouse)](https://github.com/asphaltbuffet/warehouse/releases)
-[![warehouse](https://snapcraft.io/warehouse/badge.svg)](https://snapcraft.io/warehouse)
 [![Go Reference](https://pkg.go.dev/badge/github.com/asphaltbuffet/warehouse.svg)](https://pkg.go.dev/github.com/asphaltbuffet/warehouse)
 [![go.mod](https://img.shields.io/github/go-mod/go-version/asphaltbuffet/warehouse)](go.mod)
 [![LICENSE](https://img.shields.io/github/license/asphaltbuffet/warehouse)](LICENSE)
