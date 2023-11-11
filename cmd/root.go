@@ -22,37 +22,30 @@ package cmd
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var appFS afero.Fs
-
 // default const values for application.
 const (
-	DefaultConfigFilename = ".warehouse"
+	DefaultConfigFilename = ".wherehouse"
 	DefaultLoggingLevel   = "warn"
 )
 
-const rootCommandLongDesc = "warehouse is a tracking application for personal items.\n" +
+const rootCommandLongDesc = "wherehouse is a tracking application for personal items.\n" +
 	"It stores a digital record of items with options to use, delete, loan, and borrow."
 
 // rootCmd represents the base command when called without any subcommands.
-var rootCmd = &cobra.Command{
-	Use:               "warehouse",
+var rootCmd = &cobra.Command{ //nolint:gochecknoglobals // global variable for root command.
+	Use:               "wherehouse",
 	Version:           "0.0.0",
-	Short:             "warehouse is an inventory tracking application.",
+	Short:             "wherehouse is an inventory tracking application.",
 	Long:              rootCommandLongDesc,
 	Args:              cobra.NoArgs,
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		InitConfig(appFS, DefaultConfigFilename)
+		InitConfig(DefaultConfigFilename)
 	},
-}
-
-func init() {
-	// rootCmd.PersistentFlags().String("config", ".warehouse", "Configuration file to use for application.")
 }
 
 // GetRootCmd gets the application root command.
@@ -67,20 +60,16 @@ func Execute() {
 }
 
 // InitConfig sets up Viper and Logging.
-func InitConfig(fs afero.Fs, cfg string) {
+func InitConfig(cfg string) {
 	log.Trace("initializing configuration and logging")
 
-	appFS = afero.NewOsFs()
-
-	// viper.SetFs(appFS)
-
-	// Search config in application directory with name ".warehouse" (without extension).
+	// Search config in application directory with name ".wherehouse" (without extension).
 	viper.AddConfigPath("./")
 	viper.AddConfigPath("$HOME/")
 	viper.SetConfigType("yaml")
 	viper.SetConfigName(cfg)
 
-	viper.SetEnvPrefix("WAREHOUSE")
+	viper.SetEnvPrefix("wherehouse")
 	viper.AutomaticEnv() // read in environment variables that match
 
 	viper.SetDefault("logging.level", DefaultLoggingLevel)

@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [seed]: https://github.com/golang-templates/seed/releases/tag/v0.15.0
 
-[Unreleased]: https://github.com/asphaltbuffet/warehouse/compare/v0.0.0...HEAD
-[0.0.0]: https://github.com/asphaltbuffet/warehouse/releases/tag/v0.0.0
+[Unreleased]: https://github.com/asphaltbuffet/wherehouse/compare/v0.0.0...HEAD
+[0.0.0]: https://github.com/asphaltbuffet/wherehouse/releases/tag/v0.0.0
 
 <!-- markdownlint-disable-file MD024 -->

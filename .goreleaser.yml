@@ -14,28 +14,37 @@ archives:
 - format_overrides:
     - goos: windows
       format: zip
+  format: tgz
   files:
-  - src: .warehouse
-  - src: README*
+  - info:
+      mtime: "{{ .CommitDate }}"
+  - src: .wherehouse
+  - src: CHANGELOG*
     dst: docs
   - src: LICENSE*
     dst: docs
-  - src: CHANGELOG*
+  - src: README*
     dst: docs
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  skip: true
 release:
   github:
     owner: asphaltbuffet
-    name: warehouse
+    name: wherehouse
   prerelease: auto
 announce:
   skip: "true"
 dockers:
   -
     image_templates:
-    - "docker.pkg.github.com/asphaltbuffet/warehouse/{{ .ProjectName }}:latest"
-    - "docker.pkg.github.com/asphaltbuffet/warehouse/{{ .ProjectName }}:{{ .Major }}"
-    - "docker.pkg.github.com/asphaltbuffet/warehouse/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}"
-    - "docker.pkg.github.com/asphaltbuffet/warehouse/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+    - "docker.pkg.github.com/asphaltbuffet/wherehouse/{{ .ProjectName }}:latest"
+    - "docker.pkg.github.com/asphaltbuffet/wherehouse/{{ .ProjectName }}:{{ .Major }}"
+    - "docker.pkg.github.com/asphaltbuffet/wherehouse/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}"
+    - "docker.pkg.github.com/asphaltbuffet/wherehouse/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
     build_flag_templates:
     - "--pull"
     - "--label=org.opencontainers.image.created={{.Date}}"
