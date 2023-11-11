@@ -1,3 +1,3 @@
 FROM scratch
-COPY warehouse /
-ENTRYPOINT ["/warehouse"]
+COPY wherehouse /
+ENTRYPOINT ["/wherehouse"]

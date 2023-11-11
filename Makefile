@@ -1,86 +1,77 @@
+SHELL := /bin/bash
+
 .DEFAULT_GOAL := dev
+.PHONY: all
+all: ## build pipeline
+all: mod inst gen build test
 
 .PHONY: dev
-dev: ## dev build
-dev: clean install generate vet fmt lint test mod-tidy
+dev: ## dev build - no tools adjustments
+dev: mod gen build-local lint test
 
 .PHONY: ci
-ci: ## CI build
-ci: dev diff
+ci: ## CI build pipeline
+ci: all diff
+
+.PHONY: help
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: clean
 clean: ## remove files created during build pipeline
 	$(call print-target)
-	rm -rf dist
-	rm -f coverage.*
+	rm -rf dist || true
+	rm -rf bin || true
+	rm -f '"$(shell go env GOCACHE)/../golangci-lint"'
+	go clean -i -cache -testcache -modcache -fuzzcache -x
 
-.PHONY: install
-install: ## go install tools
+.PHONY: mod
+mod: ## go mod tidy
 	$(call print-target)
-	cd tools && go install $(shell cd tools && go list -f '{{ join .Imports " " }}' -tags=tools)
+	go mod tidy
 
-.PHONY: generate
-generate: ## go generate
+.PHONY: inst
+inst: ## go install tools
+	$(call print-target)
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.55.2
+	go install mvdan.cc/gofumpt@v0.4.0
+
+.PHONY: gen
+gen: ## go generate
 	$(call print-target)
 	go generate ./...
 
-.PHONY: vet
-vet: ## go vet
+.PHONY: build
+build: ## go build
+build:
 	$(call print-target)
-	go vet ./...
+	go build -o dist/ ./...
 
-.PHONY: fmt
-fmt: ## go fmt
+.PHONY: build-local
+build-local: ## goreleaser build
+build-local:
 	$(call print-target)
-	go fmt ./...
+	goreleaser build --clean --single-target --snapshot
 
 .PHONY: lint
 lint: ## golangci-lint
 	$(call print-target)
-	golangci-lint run
+	mkdir -p bin || true
+	golangci-lint run --fix
 
 .PHONY: test
-test: ## go test with race detector and code covarage
+test: ## go test
 	$(call print-target)
-	go test -race -covermode=atomic -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out -o coverage.html
-
-.PHONY: mod-tidy
-mod-tidy: ## go mod tidy
-	$(call print-target)
-	go mod tidy
-	cd tools && go mod tidy
+	mkdir -p bin || true
+	go test -race -covermode=atomic -coverprofile=bin/coverage.out ./...
+	go tool cover -html=bin/coverage.out -o bin/coverage.html
+	go tool cover -func=bin/coverage.out
 
 .PHONY: diff
 diff: ## git diff
 	$(call print-target)
 	git diff --exit-code
 	RES=$$(git status --porcelain) ; if [ -n "$$RES" ]; then echo $$RES && exit 1 ; fi
-
-.PHONY: build
-build: ## goreleaser --snapshot --skip-publish --rm-dist
-build: install
-	$(call print-target)
-	goreleaser --snapshot --skip-publish --rm-dist
-
-.PHONY: release
-release: ## goreleaser --rm-dist
-release: install
-	$(call print-target)
-	goreleaser --rm-dist
-
-.PHONY: run
-run: ## go run
-	@go run -race .
-
-.PHONY: go-clean
-go-clean: ## go clean build, test and modules caches
-	$(call print-target)
-	go clean -r -i -cache -testcache -modcache
-
-.PHONY: help
-help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 define print-target
     @printf "Executing target: \033[36m$@\033[0m\n"

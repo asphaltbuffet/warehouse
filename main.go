@@ -1,7 +1,7 @@
 // Application to track personal items.
 package main
 
-import "github.com/asphaltbuffet/warehouse/cmd"
+import "github.com/asphaltbuffet/wherehouse/cmd"
 
 func main() {
 	cmd.Execute()
