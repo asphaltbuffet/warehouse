@@ -2,10 +2,10 @@
 name: Main Workflow
 
 on:
-  push: 
-    branches: [ main ]
+  push:
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -23,63 +23,88 @@ jobs:
       - name: Clone Repository
         uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version-file: "go.mod"
-          
+
       - name: Build
-        run: make ci
-        
-      - name: Upload coverage
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage
-          path: coverage.*
+        run: task ci -f
 
-      - name: Upload dist
-        uses: actions/upload-artifact@v3
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist
+          name: code-coverage-report-${{ matrix.os }}
+          path: bin
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Upload code coverage results to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
-          file: ./coverage.out
+          file: ./bin/coverage.out
           flags: ${{ runner.os }}
+
+  sonarCloudTrigger:
+    needs: ci
+    name: SonarCloud Trigger
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Download code coverage results
+        uses: actions/download-artifact@v4
+        with:
+          name: code-coverage-report-ubuntu-latest
+          path: bin
+
+      - name: Analyze with SonarCloud
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   release-test:
     needs: ci
     name: Release Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Clone Repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Fetch all tags
         run: git fetch --force --tags
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version-file: "go.mod"
 
       - name: Run GoReleaser - snapshot
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v4
         with:
           # either 'goreleaser' (default) or 'goreleaser-pro'
           distribution: goreleaser
           version: latest
-          args: release --clean --snapshot --skip-publish
+          args: release --clean --snapshot --skip=publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
           # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
 
       - name: Archive dist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: snapshot
           path: dist
