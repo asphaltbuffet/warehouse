@@ -1,53 +1,61 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 before:
   hooks:
     - go mod download
+    - go install golang.org/x/tools/cmd/stringer@latest
+    - go generate ./...
 builds:
-- env:
-    - CGO_ENABLED=0
-  goos:
-    - darwin
-    - linux
-    - windows
-  goarch:
-    - amd64
+  - ldflags:
+      - -s -w -X {{.ModulePath}}/cmd.Version={{.Summary}} -X {{.ModulePath}}/cmd.Date={{.Date}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: "386"
+      - goos: darwin
+        goarch: arm
+      
 archives:
-- format_overrides:
-    - goos: windows
-      format: zip
-  format: tgz
-  files:
-  - info:
-      mtime: "{{ .CommitDate }}"
-  - src: CHANGELOG*
-    dst: docs
-  - src: LICENSE*
-    dst: docs
-  - src: README*
-    dst: docs
+  - format: tgz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86-64
+      {{- else if eq .Arch "arm" }}arm-v6
+      {{- else if eq .Arch "arm64" }}arm-v8
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch}}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - info:
+          mtime: "{{ .CommitDate }}"
+      - src: CHANGELOG*
+        dst: docs
+      - src: README*
+        dst: docs
+      - src: LICENSE*
+        dst: docs
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  name_template: "{{ incpatch .Version }}-next-{{ .Now.Format \"0102-150405\" }}"
 changelog:
-  skip: true
+  disable: true
 release:
   github:
     owner: asphaltbuffet
     name: wherehouse
   prerelease: auto
 announce:
-  skip: "true"
-dockers:
-  -
-    image_templates:
-    - "docker.pkg.github.com/asphaltbuffet/wherehouse/{{ .ProjectName }}:latest"
-    - "docker.pkg.github.com/asphaltbuffet/wherehouse/{{ .ProjectName }}:{{ .Major }}"
-    - "docker.pkg.github.com/asphaltbuffet/wherehouse/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}"
-    - "docker.pkg.github.com/asphaltbuffet/wherehouse/{{ .ProjectName }}:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
-    build_flag_templates:
-    - "--pull"
-    - "--label=org.opencontainers.image.created={{.Date}}"
-    - "--label=org.opencontainers.image.name={{.ProjectName}}"
-    - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-    - "--label=org.opencontainers.image.version={{.Version}}"
-    - "--label=org.opencontainers.image.source={{.GitURL}}"
+  skip: 'true'

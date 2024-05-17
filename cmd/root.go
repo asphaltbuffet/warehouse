@@ -1,89 +1,62 @@
-/*
-Copyright © 2022 Ben Lechlitner <otherland@gmail.com>
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-*/
-
 // Package cmd contains all CLI commands used by the application.
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-)
+	"fmt"
+	"os"
 
-// default const values for application.
-const (
-	DefaultConfigFilename = ".wherehouse"
-	DefaultLoggingLevel   = "warn"
+	"github.com/spf13/cobra"
+
+	"github.com/asphaltbuffet/wherehouse/pkg/configurator"
 )
 
 const rootCommandLongDesc = "wherehouse is a tracking application for personal items.\n" +
 	"It stores a digital record of items with options to use, delete, loan, and borrow."
 
-// rootCmd represents the base command when called without any subcommands.
-var rootCmd = &cobra.Command{ //nolint:gochecknoglobals // global variable for root command.
-	Use:               "wherehouse",
-	Version:           "0.0.0",
-	Short:             "wherehouse is an inventory tracking application.",
-	Long:              rootCommandLongDesc,
-	Args:              cobra.NoArgs,
-	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		InitConfig(DefaultConfigFilename)
-	},
-}
+// application build information set by the linker.
+var (
+	Version string
+	Date    string
+)
 
-// GetRootCmd gets the application root command.
-func GetRootCmd() *cobra.Command {
-	return rootCmd
-}
+var rootCmd *cobra.Command
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	cobra.CheckErr(rootCmd.Execute())
+	err := GetRootCommand().Execute()
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
-// InitConfig sets up Viper and Logging.
-func InitConfig(cfg string) {
-	log.Trace("initializing configuration and logging")
+// GetRootCommand returns the root command for the CLI.
+func GetRootCommand() *cobra.Command {
+	var cfgFile string
+	if rootCmd == nil {
+		rootCmd = &cobra.Command{
+			Use:     "wherehouse",
+			Version: fmt.Sprintf("%s\n%s", Version, Date),
+			Short:   "wherehouse is an inventory tracking application",
+			Long:    rootCommandLongDesc,
+			Run: func(cmd *cobra.Command, args []string) {
+				cfg, err := configurator.New(configurator.WithFile(cfgFile))
+				if err != nil {
+					cmd.PrintErr(err)
+				}
 
-	// Search config in application directory with name ".wherehouse" (without extension).
-	viper.AddConfigPath("./")
-	viper.AddConfigPath("$HOME/")
-	viper.SetConfigType("yaml")
-	viper.SetConfigName(cfg)
-
-	viper.SetEnvPrefix("wherehouse")
-	viper.AutomaticEnv() // read in environment variables that match
-
-	viper.SetDefault("logging.level", DefaultLoggingLevel)
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err != nil {
-		log.Warn("unable to read config file: ", err)
+				cmd.Println("config file:", cfg.GetConfigFileUsed())
+			},
+		}
 	}
 
-	loggingLevel, err := log.ParseLevel(viper.GetString("logging.level"))
-	if err != nil {
-		log.Warn("error parsing logging level: ", err)
-	}
+	rootCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "configuration file")
 
-	log.SetLevel(loggingLevel)
-	log.WithFields(log.Fields{"level": loggingLevel}).Debug("set log level")
+	// rootCmd.AddCommand(GetAddCmd())
+	// rootCmd.AddCommand(GetInfoCmd())
+	// rootCmd.AddCommand(GetReportCmd())
+	// rootCmd.AddCommand(GetRemoveCmd())
+	// rootCmd.AddCommand(GetUpdateCmd())
+
+	return rootCmd
 }
